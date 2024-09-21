@@ -14,6 +14,8 @@ def remove_script_tags(html_code):
         "noscript",
         "link",
         "path",
+        "iframe",
+        "svg",
     )
 
     for tag_name in to_remove:
@@ -26,7 +28,7 @@ def remove_script_tags(html_code):
 @click.command()
 @click.argument("input_file", type=click.File("r"))
 @click.argument("output_file", type=click.File("w"))
-def clean_html(input_file, output_file):
+def clean_html(input_file, output_file=None):
     """Remove script tags from an HTML file and save the result to a new file."""
     html_code = input_file.read()
     cleaned_html = remove_script_tags(html_code)
