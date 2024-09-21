@@ -27,7 +27,7 @@ def parse_ad_item(soup):
 
     y, km, nrj, bv = ad_params.strip("·").split("·")
     infos["year"] = int(y)
-    infos["km"] = int(km.replace(" km", ""))
+    infos["mileage"] = int(km.replace(" km", ""))
     infos["nrj"] = nrj
     infos["bv"] = bv
 

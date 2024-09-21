@@ -21,6 +21,8 @@ def iter_html_files(directory: str, endswith: str = "html"):
 
 def delete_except_jpg(directory):
     print(f"Cleaning dir {directory} ...")
+    if not Path(directory).exists():
+        return
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
 
@@ -43,18 +45,18 @@ def extract_ad_page(html_code):
         infos_raw[name] = value
 
     infos["critair"] = int(infos_raw.get("critair", 0))
-    infos["doors"] = int(infos_raw.get("doors", 0))
+    infos["doors"] = int(infos_raw.get("doors", "0").replace("ou plus", ""))
     infos["fuel"] = infos_raw.get("fuel", "")
     infos["gearbox"] = infos_raw.get("gearbox")
     infos["horse_power_din"] = int(
-        infos_raw["horse_power_din"].replace("Ch", "").strip()
+        infos_raw.get("horse_power_din", "0").replace("Ch", "").strip()
     )
     infos["horsepower"] = int(
         infos_raw.get("horsepower", "0").replace("Cv", "").strip()
     )
-    infos["mileage"] = int(infos_raw["mileage"].replace("km", "").strip())
-    infos["year"] = int(infos_raw.get("regdate", 0).strip())
-    infos["seats"] = int(infos_raw.get("seats", 0).strip())
+    infos["mileage"] = int(infos_raw.get("mileage", "0").replace("km", "").strip())
+    infos["year"] = int(infos_raw.get("regdate", "0").strip())
+    infos["seats"] = int(infos_raw.get("seats", "0").strip())
     infos["model"] = infos_raw.get("u_utility_model", "").strip()
     infos["color"] = infos_raw.get("vehicule_color", "").strip()
     infos["brand"] = infos_raw.get("u_utility_brand", "").strip()
@@ -72,6 +74,13 @@ def extract_ad_page(html_code):
     ad_price = html.unescape(ad_price.text)
     infos["price"] = int(ad_price.replace("\u202f", "").replace("\xa0€", ""))
 
+    if "xs" in ad_title.lower() or "l1" in ad_title.lower():
+        infos["size"] = "XS"
+    elif "xl" in ad_title.lower() or "l2" in ad_title.lower():
+        infos["size"] = "XL"
+    else:
+        infos["size"] = "M"
+
     pprint(infos)
     return infos
 
@@ -79,10 +88,10 @@ def extract_ad_page(html_code):
 @click.command()
 def process_csv():
 
-    # # Clean dir
-    # for filepath in iter_html_files("out"):
-    #     sub_dir = Path("out", f"{Path(filepath).stem}_fichiers")
-    #     delete_except_jpg(sub_dir)
+    # Clean dir
+    for filepath in iter_html_files("out"):
+        sub_dir = Path("out", f"{Path(filepath).stem}_fichiers")
+        delete_except_jpg(sub_dir)
 
     records = list()
     for filepath in iter_html_files("out", ".html"):

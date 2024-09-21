@@ -19,7 +19,17 @@ def process_csv(csv_file):
 
     random.shuffle(records)
 
-    for row in records:
+    Path("tmp").mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        [
+            "./download_page.sh",
+            "-d",
+            f"tmp/ad_page.html",
+            f"https://www.leboncoin.fr/recherche?category=5&text=jumpy&kst=r",
+        ]
+    )
+
+    for row in records[:6]:
         target = row["target"]
         print(target)
 
@@ -28,14 +38,12 @@ def process_csv(csv_file):
         target_filename = f"out/ad_page_{target}.html"
         if Path(target_filename).exists():
             print(f"page {target} already done. skip.")
-        subprocess.run(
-            ["./download_page.sh", "-d", f"out/ad_page_{target}.html", target_url]
-        )
+            continue
+        subprocess.run(["./download_page.sh", "-d", target_filename, target_url])
 
-        wait_time = np.random.poisson(5)
+        wait_time = np.random.poisson(10)
         print(f"waiting {wait_time}s before next download...")
         time.sleep(wait_time)
-        break
 
 
 if __name__ == "__main__":
