@@ -2,13 +2,14 @@ import csv
 import html
 import os
 from pprint import pprint
+from typing import Dict
 
 import click
 from bs4 import BeautifulSoup
 
 
 def parse_ad_item(soup):
-    print("---")
+
     infos = dict()
 
     ad_target = soup.get("href")
@@ -16,7 +17,7 @@ def parse_ad_item(soup):
 
     ad_title = soup.find(attrs={"data-qa-id": "aditem_title"})
     ad_title = html.unescape(ad_title.get("title"))
-    infos["title"] = ad_title
+    infos["title"] = ad_title.lower()
 
     ad_price = soup.find(attrs={"data-qa-id": "aditem_price"})
     ad_price = html.unescape(ad_price.text)
@@ -28,35 +29,39 @@ def parse_ad_item(soup):
     y, km, nrj, bv = ad_params.strip("·").split("·")
     infos["year"] = int(y)
     infos["mileage"] = int(km.replace(" km", ""))
-    infos["nrj"] = nrj
+    infos["nrj"] = nrj.lower()
     infos["bv"] = bv
 
-    pprint(infos)
+    # print("---")
+    # pprint(infos)
 
     return infos
 
 
-def keep_only_aditem_container(html_code):
+def parse_result_page(html_code) -> Dict:
     soup = BeautifulSoup(html_code, "html.parser")
 
     aditem_container = soup.find_all(attrs={"data-qa-id": "aditem_container"})
     print(len(aditem_container), "items")
 
-    records = list()
+    records = dict()
     for it in aditem_container:
-        out = parse_ad_item(it)
-        records.append(out)
+        try:
+            out = parse_ad_item(it)
+            if out["target"] in records:
+                print(f"duplicate {out['target']}: title {out['title']}")
+                continue
+            records[out["target"]] = out
+        except AttributeError as err:
+            print(f"AttributeError on out['target']: {err}. Ignored.")
 
-    return records
+    return list(records.values())
 
 
 def iter_html_pages(directory: str):
     for filename in os.listdir(directory):
         if filename.endswith(".html"):
-            file_path = os.path.join(directory, filename)
-
-            with open(file_path, "r", encoding="utf-8") as file:
-                yield file.read()
+            yield os.path.join(directory, filename)
 
 
 @click.command()
@@ -64,9 +69,15 @@ def iter_html_pages(directory: str):
 def filter_html(output_file):
 
     records = list()
-    for html_code in iter_html_pages("pages"):
-        new_records = keep_only_aditem_container(html_code)
-        records.extend(new_records)
+    for file_path in iter_html_pages("pages"):
+        with open(file_path, "r", encoding="utf-8") as file:
+            html_code = file.read()
+        try:
+            new_records = parse_result_page(html_code)
+            records.extend(new_records)
+        except Exception as err:
+            print(file_path)
+            raise err
 
     writer = csv.DictWriter(output_file, fieldnames=records[0].keys())
     writer.writeheader()

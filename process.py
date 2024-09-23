@@ -103,9 +103,7 @@ def process_csv():
             infos["target"] = Path(filepath).stem.split("_")[-1]
             records.append(infos)
         except Exception as err:
-            print(err)
             print(filepath)
-            raise
 
     output_file = "out/extract.csv"
     Path(output_file).parent.mkdir(exist_ok=True, parents=True)
