@@ -10,3 +10,11 @@
 - semi-automatic download item pages: `get_pages.py` (with `download_page.sh`)
 - extract info from pages: `result_pages_extract.py`
 - make a graph: `graph.py`
+
+
+## Output
+
+![graph1](./images/visualization.png)
+
+
+![graph2](./images/bubble_chart.png)
