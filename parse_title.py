@@ -30,13 +30,19 @@ def extract_vehicle_info(line) -> ModelInfo:
     models = [
         "jumpy",
         "kangoo",
+        "partner",
         "berlingo",
         "scudo",
         "proace",
         "expert",
         "trafic",
         "vito",
+        "vivaro",
         "transit custom",
+        "transit connect",
+        "citan",
+        "zoe",
+        "doblo",
     ]
     brand_pattern = rf"({'|'.join(brands)})"
     model_pattern = rf"({'|'.join(models)})"

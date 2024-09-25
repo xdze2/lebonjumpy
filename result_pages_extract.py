@@ -1,19 +1,20 @@
 import csv
 import html
 import os
-from pprint import pprint
 from typing import Dict
 
+# from pprint import pprint
 import click
 from bs4 import BeautifulSoup
 
 
 def parse_ad_item(soup):
+    """Parse an item."""
 
     infos = dict()
 
-    ad_target = soup.get("href")
-    infos["target"] = ad_target.split("/")[-1]
+    item_id = soup.get("href")
+    infos["target"] = item_id.split("/")[-1]
 
     ad_title = soup.find(attrs={"data-qa-id": "aditem_title"})
     ad_title = html.unescape(ad_title.get("title"))
@@ -39,6 +40,7 @@ def parse_ad_item(soup):
 
 
 def parse_result_page(html_code) -> Dict:
+    """"""
     soup = BeautifulSoup(html_code, "html.parser")
 
     aditem_container = soup.find_all(attrs={"data-qa-id": "aditem_container"})
@@ -65,11 +67,12 @@ def iter_html_pages(directory: str):
 
 
 @click.command()
+@click.argument("input_dir", type=click.Path(exists=True))
 @click.argument("output_file", type=click.File("w"))
-def filter_html(output_file):
+def filter_html(input_dir: str, output_file: click.File) -> None:
 
     records = list()
-    for file_path in iter_html_pages("pages"):
+    for file_path in iter_html_pages(input_dir):
         with open(file_path, "r", encoding="utf-8") as file:
             html_code = file.read()
         try:
